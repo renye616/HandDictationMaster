@@ -1,0 +1,6 @@
+{
+  "name": "日语五十音图 · 手写听写大师",
+  "description": "集成了 AI 手写识别技术的日语学习系统。支持标准发音、自研Canvas手写绘板以及基于 Gemini 的后端智能校验，解决网络访问痛点并大幅提升识记效率。",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
