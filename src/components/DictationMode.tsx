@@ -46,10 +46,11 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
     if (status !== 'none' || isFinished) return;
     
     setIsRecognizing(true);
-    const identified = await geminiService.identifyHandwriting(base64Image, currentChar.hiragana);
+    const identified = await geminiService.identifyHandwriting(base64Image, currentChar.hiragana, currentChar.katakana);
     setIsRecognizing(false);
     
-    const isCorrect = identified === currentChar.hiragana || identified === currentChar.katakana;
+    // identified will be the hiragana if it matched either hiragana or katakana
+    const isCorrect = identified === currentChar.hiragana;
     
     if (isCorrect) {
       handleCorrect();
