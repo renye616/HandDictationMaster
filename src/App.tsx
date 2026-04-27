@@ -118,7 +118,7 @@ export default function App() {
         </div>
       )}
 
-      <main className={cn("container mx-auto pb-24 pt-8 px-4", isDictationMode ? "pt-32" : "")}>
+      <main className={cn("container mx-auto pb-24 px-4", isDictationMode ? "pt-4" : "pt-8")}>
         <AnimatePresence mode="wait">
           {!isDictationMode ? (
             <motion.div
