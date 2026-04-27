@@ -23,10 +23,28 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
     ctx.lineCap = 'round';
     ctx.lineWidth = 10;
     ctx.strokeStyle = '#1E293B'; // slate-800
-  }, []);
 
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (e.cancelable) e.preventDefault();
+    // Native listeners for better control over passive events
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+      startDrawingInternal(e);
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+      drawInternal(e);
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isDrawing]); // Depend on isDrawing to ensure refs are fresh in closures if needed, 
+                   // but actually we'll use refs for state internal to listeners or just call current state-enabled functions.
+
+  const startDrawingInternal = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -38,9 +56,8 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
     ctx.moveTo(pos.x, pos.y);
   };
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+  const drawInternal = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing) return;
-    if (e.cancelable) e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -52,11 +69,22 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
     setHasContent(true);
   };
 
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (e.cancelable) e.preventDefault();
+    startDrawingInternal(e);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    if (e.cancelable) e.preventDefault();
+    drawInternal(e);
+  };
+
   const stopDrawing = () => {
     setIsDrawing(false);
   };
 
-  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+  const getPos = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
@@ -64,12 +92,16 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
     const scaleY = canvas.height / rect.height;
 
     let clientX, clientY;
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
+    
+    // Check if it's a native TouchEvent or React.TouchEvent
+    const touches = (e as any).touches || (e as any).nativeEvent?.touches;
+
+    if (touches && touches.length > 0) {
+      clientX = touches[0].clientX;
+      clientY = touches[0].clientY;
     } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
+      clientX = (e as MouseEvent).clientX;
+      clientY = (e as MouseEvent).clientY;
     }
 
     return {
@@ -112,6 +144,7 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
+          style={{ touchAction: 'none' }}
           className={cn(
             "bg-slate-50 border-4 rounded-[2rem] cursor-crosshair transition-all duration-300 shadow-inner",
             "border-slate-100 group-hover:border-blue-100",
