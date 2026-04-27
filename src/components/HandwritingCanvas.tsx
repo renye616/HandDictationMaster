@@ -112,6 +112,7 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
+          style={{ touchAction: 'none' }}
           className={cn(
             "bg-slate-50 border-4 rounded-[2rem] cursor-crosshair transition-all duration-300 shadow-inner",
             "border-slate-100 group-hover:border-blue-100",

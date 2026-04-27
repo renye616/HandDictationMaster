@@ -5,7 +5,7 @@ import { KanaChar, Stats } from '../types';
 import { KanaCard } from './KanaCard';
 import { HandwritingCanvas } from './HandwritingCanvas';
 import { audioService } from '../services/audioService';
-import { geminiService } from '../services/geminiService';
+import { handwritingRecognizer } from '../services/handwritingRecognizer';
 import { shuffleArray, cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
 
@@ -46,10 +46,8 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
     if (status !== 'none' || isFinished) return;
     
     setIsRecognizing(true);
-    const identified = await geminiService.identifyHandwriting(base64Image, currentChar.hiragana);
+    const isCorrect = await handwritingRecognizer.recognize(base64Image, currentChar.hiragana);
     setIsRecognizing(false);
-    
-    const isCorrect = identified === currentChar.hiragana || identified === currentChar.katakana;
     
     if (isCorrect) {
       handleCorrect();
