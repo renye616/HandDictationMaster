@@ -11,6 +11,12 @@
   }
 }
 
+html, body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+  height: 100%;
+}
+
 body {
   background-color: #F8FAFC;
   color: #1E293B;

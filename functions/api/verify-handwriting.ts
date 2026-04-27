@@ -9,10 +9,10 @@ interface Env {
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
-    const { image, targetChar } = await context.request.json() as any;
+    const { image, targetChar, hiragana, katakana } = await context.request.json() as any;
 
-    if (!image || !targetChar) {
-      return new Response(JSON.stringify({ error: "Missing image or targetChar" }), {
+    if (!image || (!targetChar && !hiragana)) {
+      return new Response(JSON.stringify({ error: "Missing image or target character data" }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
@@ -26,14 +26,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       });
     }
 
-    // Using native fetch to call Gemini API directly (avoiding potential Node-specific issues in genai SDK if any)
+    // Using native fetch to call Gemini API directly
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
+    // Plan B: Accept either Hiragana or Katakana
+    const h = hiragana || targetChar;
+    const k = katakana || targetChar;
+
     const prompt = `Identify the Japanese character in this image. ` +
-      `The intended sound is represented by '${targetChar}'. ` +
-      `Does the handwritten character match this sound? (Accept both Hiragana or Katakana forms). ` +
+      `The user is trying to write the character for the sound '${h}'. ` +
+      `Acceptable forms are Hiragana '${h}' or Katakana '${k}'. ` +
+      `Does the handwritten character match either of these? ` +
       `Respond ONLY with a JSON object: {"match": true, "identified": "detected_char", "confidence": 1.0}. ` +
-      `Be encouraging to learners with slightly messy handwriting.`;
+      `Be lenient with stroke order or slight style variations.`;
 
     const body = {
       contents: [{

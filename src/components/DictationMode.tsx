@@ -21,6 +21,8 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
   const [strikes, setStrikes] = useState(0);
   const [isFlipped, setIsFlipped] = useState(true); // Back side up (isFlipped=true means showing back)
   const [showRomaji, setShowRomaji] = useState(false);
+  const [isCardVisible, setIsCardVisible] = useState(true);
+  const [isDictationStarted, setIsDictationStarted] = useState(false);
   const [status, setStatus] = useState<'none' | 'correct' | 'incorrect'>('none');
   const [isFinished, setIsFinished] = useState(false);
   const [stats, setStats] = useState<Stats>({ total: characters.length, correct: 0, incorrect: 0, failed: [] });
@@ -39,6 +41,8 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
   const handleStartRound = () => {
     setIsFlipped(true);
     setShowRomaji(true);
+    setIsCardVisible(false);
+    setIsDictationStarted(true);
     audioService.speak(currentChar.hiragana);
   };
 
@@ -96,6 +100,8 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
       setStrikes(0);
       setIsFlipped(true);
       setShowRomaji(false);
+      setIsCardVisible(true);
+      setIsDictationStarted(false);
       setStatus('none');
     } else {
       setIsFinished(true);
@@ -170,7 +176,10 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-12 py-10 px-4 max-w-6xl mx-auto">
+    <div className={cn(
+      "flex flex-col md:flex-row items-center justify-center gap-12 px-4 max-w-6xl mx-auto",
+      isDictationStarted ? "py-10 min-h-[90vh]" : "py-20 min-h-[80vh]"
+    )}>
       {/* Left: Progress and Card */}
       <div className="flex-1 flex flex-col items-center">
         <div className="w-full max-w-md flex flex-col items-center mb-12">
@@ -198,22 +207,24 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
         </div>
 
         <AnimatePresence mode="wait">
-            <motion.div
-            key={currentIndex}
-            initial={{ scale: 0.8, opacity: 0, rotateY: -30 }}
-            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-            exit={{ scale: 1.2, opacity: 0, rotateY: 30 }}
-            className="relative"
-            >
-            <KanaCard 
-                char={currentChar}
-                isFlipped={isFlipped}
-                showRomajiOnly={showRomaji}
-                status={status}
-                className="w-56 h-72 text-5xl shadow-2xl shadow-blue-100/50"
-                onClick={showRomaji ? () => audioService.speak(currentChar.hiragana) : handleStartRound}
-            />
-            </motion.div>
+            {isCardVisible && (
+                <motion.div
+                key={currentIndex}
+                initial={{ scale: 0.8, opacity: 0, rotateY: -30 }}
+                animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                exit={{ scale: 1.2, opacity: 0, rotateY: 30 }}
+                className="relative"
+                >
+                <KanaCard 
+                    char={currentChar}
+                    isFlipped={isFlipped}
+                    showRomajiOnly={showRomaji}
+                    status={status}
+                    className="w-56 h-72 text-5xl shadow-2xl shadow-blue-100/50"
+                    onClick={showRomaji ? () => audioService.speak(currentChar.hiragana) : handleStartRound}
+                />
+                </motion.div>
+            )}
         </AnimatePresence>
       </div>
 

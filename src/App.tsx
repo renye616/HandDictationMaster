@@ -35,47 +35,49 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
-      <header className="fixed top-6 left-6 right-6 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">あ</div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">五十音图</h1>
-              <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">Gojuon Master</p>
+      {!isDictationMode && (
+        <header className="fixed top-6 left-6 right-6 z-50">
+          <div className="max-w-6xl mx-auto flex items-center justify-between bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">あ</div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-800">五十音图</h1>
+                <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">Gojuon Master</p>
+              </div>
+            </div>
+            
+            <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+              <button 
+                onClick={() => setIsDictationMode(false)}
+                className={cn(
+                  "px-6 py-2 rounded-lg text-sm font-bold transition-all",
+                  !isDictationMode ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                浏览模式
+              </button>
+              <button 
+                onClick={() => setIsDictationMode(true)}
+                className={cn(
+                  "px-6 py-2 rounded-lg text-sm font-bold transition-all",
+                  isDictationMode ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                听写模式
+              </button>
+            </div>
+
+            <div className="hidden md:flex items-center gap-4">
+              <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                  <Search className="w-5 h-5" />
+              </button>
+              <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                  <Menu className="w-5 h-5" />
+              </button>
             </div>
           </div>
-          
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-            <button 
-              onClick={() => setIsDictationMode(false)}
-              className={cn(
-                "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                !isDictationMode ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-            >
-              浏览模式
-            </button>
-            <button 
-              onClick={() => setIsDictationMode(true)}
-              className={cn(
-                "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                isDictationMode ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              )}
-            >
-              听写模式
-            </button>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                <Search className="w-5 h-5" />
-            </button>
-            <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                <Menu className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Hero / Banner Area */}
       {!isDictationMode && (
