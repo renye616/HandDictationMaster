@@ -40,12 +40,19 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
     return () => {
       canvas.removeEventListener('touchstart', handleTouchStart);
       canvas.removeEventListener('touchmove', handleTouchMove);
+      // Restore scroll just in case
+      document.body.style.overflow = '';
+      document.body.style.position = '';
     };
-  }, [isDrawing]); // Depend on isDrawing to ensure refs are fresh in closures if needed, 
-                   // but actually we'll use refs for state internal to listeners or just call current state-enabled functions.
+  }, [isDrawing]);
 
   const startDrawingInternal = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
+    // Lock body scroll when starting to draw to prevent page shaking
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -82,6 +89,10 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
 
   const stopDrawing = () => {
     setIsDrawing(false);
+    // Restore body scroll
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
   };
 
   const getPos = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
