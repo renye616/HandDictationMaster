@@ -142,11 +142,11 @@ export function HandwritingCanvas({ onSubmit, isLoading }: HandwritingCanvasProp
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+    <div className="flex flex-col items-center gap-6 w-full max-w-md">
       <div className="relative group">
         <canvas
           ref={canvasRef}
-          width={400}
+          width={360}
           height={400}
           onMouseDown={startDrawing}
           onMouseMove={draw}

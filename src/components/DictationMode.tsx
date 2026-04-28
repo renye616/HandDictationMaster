@@ -323,12 +323,7 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
 
       <button 
         onClick={onExit}
-        className={cn(
-          "fixed bg-white px-8 py-3 rounded-full text-slate-400 hover:text-slate-900 shadow-lg border border-slate-100 transition-all flex items-center gap-3 font-bold hover:scale-105 active:scale-95",
-          isDictationStarted 
-            ? "top-10 left-10 bottom-auto right-auto" 
-            : "bottom-10 left-1/2 -translate-x-1/2 top-auto right-auto"
-        )}
+        className="mt-8 mb-4 bg-white px-8 py-3 rounded-full text-slate-600 shadow-lg border border-slate-200 flex items-center gap-3 font-bold"
       >
         <LogOut className="w-4 h-4" /> 退出并返回浏览模式
       </button>
