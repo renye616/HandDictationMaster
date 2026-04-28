@@ -33,12 +33,28 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const h = hiragana || targetChar;
     const k = katakana || targetChar;
 
-    const prompt = `Identify the Japanese character in this image. ` +
-      `The user is trying to write the character for the sound '${h}'. ` +
-      `Acceptable forms are Hiragana '${h}' or Katakana '${k}'. ` +
-      `Does the handwritten character match either of these? ` +
-      `Respond ONLY with a JSON object: {"match": true, "identified": "detected_char", "confidence": 1.0}. ` +
-      `Be lenient with stroke order or slight style variations.`;
+    const prompt = `Role: 日语听写批改老师（针对中国初学者，非常宽松）\n\n` +
+      `Task: 判断学生手写日语字符是否与【目标平假名：${h}或者目标片假名：${k}只要和其中一个】一致就可以。\n\n` +
+      `宽松判题规则（初学者友好，鼓励为主）：\n` +
+      `1. 候选集 ONLY：只能从「${h}、${k}」中二选一，禁止识别成其他字符。\n` +
+      `2. 高度容错：\n` +
+      `   - 线条抖动、歪斜、大小不匀称：完全接受，算匹配\n` +
+      `   - 笔画顺序错误、笔画连接不流畅：算匹配\n` +
+      `   - 笔画粗细不均、轻微断笔：算匹配\n` +
+      `   - 只有当字符完全不像目标假名时才判错\n` +
+      `3. 判断标准：\n` +
+      `   - 优先看整体轮廓和形状是否相似\n` +
+      `   - 只要能看出是目标假名的大致样子就通过\n` +
+      `   - 给予初学者最大的鼓励和肯定\n\n` +
+      `输出 JSON（严格格式，不要解释）：\n` +
+      `{\n` +
+      `  "match": boolean,\n` +
+      `  "identified_char": "你识别出的字符（只能是目标之一）",\n` +
+      `  "stroke_similarity": 0-100, // 笔画相似度\n` +
+      `  "structure_similarity": 0-100, // 结构相似度\n` +
+      `  "reason": "中文原因，20字内",\n` +
+      `  "feedback": "鼓励性中文反馈"\n` +
+      `}`;
 
     const body = {
       contents: [{

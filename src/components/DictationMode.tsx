@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, RefreshCcw, LogOut, CheckCircle2, XCircle, AlertCircle, Trophy, PenTool } from 'lucide-react';
+import { Volume2, RefreshCcw, LogOut, CheckCircle2, XCircle, Trophy, PenTool } from 'lucide-react';
 import { KanaChar, Stats } from '../types';
 import { KanaCard } from './KanaCard';
 import { HandwritingCanvas } from './HandwritingCanvas';
@@ -8,6 +8,15 @@ import { audioService } from '../services/audioService';
 import { handwritingRecognizer } from '../services/handwritingRecognizer';
 import { shuffleArray, cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
+
+interface VerificationResult {
+  match: boolean;
+  identified_char: string;
+  stroke_similarity: number;
+  structure_similarity: number;
+  reason: string;
+  feedback: string;
+}
 
 interface DictationModeProps {
   characters: KanaChar[];
@@ -19,14 +28,16 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [strikes, setStrikes] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(true); // Back side up (isFlipped=true means showing back)
+  const [isFlipped, setIsFlipped] = useState(true); // Back side up initially (show "?")
   const [showRomaji, setShowRomaji] = useState(false);
   const [isCardVisible, setIsCardVisible] = useState(true);
   const [isDictationStarted, setIsDictationStarted] = useState(false);
   const [status, setStatus] = useState<'none' | 'correct' | 'incorrect'>('none');
+  const [showAnswer, setShowAnswer] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [stats, setStats] = useState<Stats>({ total: characters.length, correct: 0, incorrect: 0, failed: [] });
   const [completedList, setCompletedList] = useState<{char: KanaChar, status: 'correct' | 'failed'}[]>([]);
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
 
   const currentChar = shuffledChars[currentIndex];
 
@@ -41,19 +52,36 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
   const handleStartRound = () => {
     setIsFlipped(true);
     setShowRomaji(true);
-    setIsCardVisible(false);
     setIsDictationStarted(true);
     audioService.speak(currentChar.hiragana);
+    setTimeout(() => {
+      setIsCardVisible(false);
+    }, 500);
   };
 
   const handleHandwritingSubmit = async (base64Image: string) => {
     if (status !== 'none' || isFinished) return;
     
     setIsRecognizing(true);
-    const isCorrect = await handwritingRecognizer.recognize(base64Image, currentChar.hiragana);
+    
+    const hwResult = await handwritingRecognizer.recognizeWithDetails(base64Image, currentChar.hiragana);
+    
+    const result: VerificationResult = {
+      match: hwResult.match,
+      identified_char: hwResult.confidence > 0.6 ? currentChar.hiragana : '',
+      stroke_similarity: Math.round(hwResult.confidence * 100),
+      structure_similarity: Math.round(hwResult.confidence * 100),
+      reason: hwResult.confidence > 0.8 ? '书写很标准！' : 
+              hwResult.confidence > 0.6 ? '结构基本匹配' : '结构相似但需改进',
+      feedback: hwResult.match ? hwResult.confidence > 0.8 ? '太棒了！写得非常标准！' : 
+                                   '写得不错！继续保持！' : 
+                                   '再试一次，相信你可以的！'
+    };
+    
+    setVerificationResult(result);
     setIsRecognizing(false);
     
-    if (isCorrect) {
+    if (result.match) {
       handleCorrect();
     } else {
       handleIncorrect();
@@ -62,9 +90,10 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
 
   const handleCorrect = () => {
     setStatus('correct');
+    setShowAnswer(true);
     setStats(prev => ({ ...prev, correct: prev.correct + 1 }));
     setCompletedList(prev => [...prev, { char: currentChar, status: 'correct' }]);
-    setIsFlipped(false); // Show front
+    setIsFlipped(false); // Show front with correct answer
     confetti({
       particleCount: 100,
       spread: 70,
@@ -73,7 +102,7 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
     
     setTimeout(() => {
       nextRound();
-    }, 1500);
+    }, 2000);
   };
 
   const handleIncorrect = () => {
@@ -98,11 +127,13 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
     if (currentIndex < shuffledChars.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setStrikes(0);
-      setIsFlipped(true);
+      setIsFlipped(true); // Show "?" initially
       setShowRomaji(false);
       setIsCardVisible(true);
       setIsDictationStarted(false);
       setStatus('none');
+      setShowAnswer(false);
+      setVerificationResult(null);
     } else {
       setIsFinished(true);
       confetti({
@@ -273,6 +304,82 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
                         isLoading={isRecognizing}
                     />
 
+                    <AnimatePresence mode="wait">
+                      {showAnswer && verificationResult && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className={cn(
+                            "w-full border-2 rounded-2xl p-6 mt-4",
+                            status === 'correct' ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"
+                          )}
+                        >
+                          <div className={cn(
+                            "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest mb-4",
+                            status === 'correct' ? "text-emerald-500" : "text-red-500"
+                          )}>
+                              {status === 'correct' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                              {status === 'correct' ? '回答正确' : '回答错误'}
+                          </div>
+                          
+                          {verificationResult.identified_char && (
+                            <div className="mb-4 text-center">
+                              <span className="text-xs text-slate-500">识别结果：</span>
+                              <span className="text-2xl font-black ml-2">{verificationResult.identified_char}</span>
+                            </div>
+                          )}
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="bg-white rounded-xl p-3 text-center">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">笔画相似度</div>
+                              <div className={cn(
+                                "text-2xl font-black",
+                                verificationResult.stroke_similarity >= 80 ? "text-emerald-600" :
+                                verificationResult.stroke_similarity >= 50 ? "text-yellow-600" : "text-red-600"
+                              )}>
+                                {verificationResult.stroke_similarity}%
+                              </div>
+                            </div>
+                            <div className="bg-white rounded-xl p-3 text-center">
+                              <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">结构相似度</div>
+                              <div className={cn(
+                                "text-2xl font-black",
+                                verificationResult.structure_similarity >= 80 ? "text-emerald-600" :
+                                verificationResult.structure_similarity >= 50 ? "text-yellow-600" : "text-red-600"
+                              )}>
+                                {verificationResult.structure_similarity}%
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {verificationResult.reason && (
+                            <div className="text-sm text-slate-600 mb-3 text-center">{verificationResult.reason}</div>
+                          )}
+                          
+                          {verificationResult.feedback && (
+                            <div className={cn(
+                              "text-sm font-medium text-center",
+                              status === 'correct' ? "text-emerald-600" : "text-red-600"
+                            )}>
+                              {verificationResult.feedback}
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-slate-200">
+                              <div className="text-center">
+                                  <div className="text-4xl font-black text-slate-800 mb-1">{currentChar.hiragana}</div>
+                                  <div className="text-[10px] text-slate-400 font-bold uppercase">Hiragana</div>
+                              </div>
+                              <div className="text-center">
+                                  <div className="text-4xl font-black text-slate-800 mb-1">{currentChar.katakana}</div>
+                                  <div className="text-[10px] text-slate-400 font-bold uppercase">Katakana</div>
+                              </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <div className="flex justify-center flex-col items-center gap-2 mt-4">
                         <div className="flex gap-2">
                             {[1, 2, 3].map(i => (
@@ -287,7 +394,7 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
                         </p>
                     </div>
                    </>
-                 ) : (
+                 ) :
                    <div className="text-center py-6 w-full">
                      <div className="text-red-500 font-black mb-4 flex items-center justify-center gap-2">
                         <XCircle className="w-6 h-6" /> 挑战失败
@@ -315,7 +422,7 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
                        进入下一题
                      </motion.button>
                    </div>
-                 )}
+                 }
               </div>
             </div>
           )}
