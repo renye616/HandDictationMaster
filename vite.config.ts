@@ -13,6 +13,7 @@ export default defineConfig(({mode}) => {
       legacy({
         targets: ['Android >= 6', 'iOS >= 10', 'Chrome >= 58', 'Firefox >= 54', 'Safari >= 10'],
         modernPolyfills: true,
+        renderLegacyChunks: true,
       }),
     ],
     define: {
