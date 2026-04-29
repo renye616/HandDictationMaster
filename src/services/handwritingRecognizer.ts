@@ -60,7 +60,7 @@ class HandwritingRecognizer {
         if (isEmpty || isSimpleLine || isSimpleDot || isTooSimple) {
           resolve({ match: false, confidence: similarity });
         } else {
-          resolve({ match: similarity > 0.78, confidence: similarity });
+          resolve({ match: similarity > 0.79, confidence: similarity });
         }
       };
       img.onerror = () => resolve({ match: false, confidence: 0 });

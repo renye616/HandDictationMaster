@@ -11,7 +11,8 @@ export default defineConfig(({mode}) => {
       react(), 
       tailwindcss(),
       legacy({
-        targets: ['defaults', 'not IE 11'],
+        targets: ['Android >= 6', 'iOS >= 10', 'Chrome >= 58', 'Firefox >= 54', 'Safari >= 10'],
+        modernPolyfills: true,
       }),
     ],
     define: {
