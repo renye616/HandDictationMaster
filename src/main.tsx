@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
@@ -18,17 +18,12 @@ window.onerror = function(msg, url, line, col, error) {
       throw new Error('Root element not found');
     }
     
-    if (ReactDOM.createRoot) {
-      ReactDOM.createRoot(rootElement).render(
+    if (createRoot) {
+      createRoot(rootElement).render(
         React.createElement(React.StrictMode, null, React.createElement(App))
       );
-    } else if (ReactDOM.render) {
-      ReactDOM.render(
-        React.createElement(React.StrictMode, null, React.createElement(App)),
-        rootElement
-      );
     } else {
-      throw new Error('ReactDOM is not available');
+      throw new Error('ReactDOM.createRoot is not available');
     }
   } catch (error) {
     const root = document.getElementById('root');
