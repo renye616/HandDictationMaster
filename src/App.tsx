@@ -218,20 +218,7 @@ export default function App() {
                 <p className="text-slate-400 text-sm max-w-xs leading-relaxed">专业的日语在线学习工具，致力于提供更高效、更直观的学习体验。</p>
               </div>
 
-              <div className="flex gap-16">
-                <div className="text-center">
-                    <h4 className="text-slate-800 font-bold mb-4 text-sm uppercase tracking-widest">学习社区</h4>
-                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 hover:border-blue-500 transition-all">
-                        <img src="https://daxueui-cos.koocdn.com/images/fe_upload/2023/3/2023-3-9-1678326363253.png" alt="QR" className="w-24 h-24" />
-                    </div>
-                </div>
-                <div className="text-center">
-                    <h4 className="text-slate-800 font-bold mb-4 text-sm uppercase tracking-widest">移动应用</h4>
-                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 hover:border-blue-500 transition-all">
-                        <div className="w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center text-white text-[10px] text-center font-black">APP<br/>STORES</div>
-                    </div>
-                </div>
-              </div>
+
             </div>
             
             <div className="mt-16 pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">

@@ -64,11 +64,15 @@ export function DictationMode({ characters, onExit }: DictationModeProps) {
     
     setIsRecognizing(true);
     
-    const hwResult = await handwritingRecognizer.recognizeWithDetails(base64Image, currentChar.hiragana);
+    const hiraganaResult = await handwritingRecognizer.recognizeWithDetails(base64Image, currentChar.hiragana);
+    const katakanaResult = await handwritingRecognizer.recognizeWithDetails(base64Image, currentChar.katakana);
+    
+    const hwResult = hiraganaResult.confidence > katakanaResult.confidence ? hiraganaResult : katakanaResult;
+    const identifiedChar = hiraganaResult.confidence > katakanaResult.confidence ? currentChar.hiragana : currentChar.katakana;
     
     const result: VerificationResult = {
       match: hwResult.match,
-      identified_char: hwResult.confidence > 0.6 ? currentChar.hiragana : '',
+      identified_char: hwResult.confidence > 0.6 ? identifiedChar : '',
       stroke_similarity: Math.round(hwResult.confidence * 100),
       structure_similarity: Math.round(hwResult.confidence * 100),
       reason: hwResult.confidence > 0.8 ? '书写很标准！' : 

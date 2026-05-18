@@ -46,21 +46,24 @@ class HandwritingRecognizer {
           vSegments: features.vSegments.map(s => s.toFixed(2)),
         });
 
-        const isSimpleLine = features.aspectRatio > 2 && features.density < 0.1;
-        const isSimpleDot = features.totalPixels < 50 && features.density < 0.05;
-        const isEmpty = features.totalPixels < 50;
+        const isSimpleLine = features.aspectRatio > 1.8 && features.density < 0.12;
+        const isSimpleDot = features.totalPixels < 80 && features.density < 0.08;
+        const isEmpty = features.totalPixels < 80;
+        const isLowDensity = features.density < 0.1;
         
-        const hasVerticalComponent = features.vSegments[1] > 0.15;
-        const hasHorizontalComponent = features.hSegments[1] > 0.15;
-        const hasMultipleSegments = features.hSegments.filter(s => s > 0.1).length >= 2 || 
-                                   features.vSegments.filter(s => s > 0.1).length >= 2;
+        const hasVerticalComponent = features.vSegments[1] > 0.18;
+        const hasHorizontalComponent = features.hSegments[1] > 0.18;
+        const hasMultipleSegments = features.hSegments.filter(s => s > 0.12).length >= 2 || 
+                                   features.vSegments.filter(s => s > 0.12).length >= 2;
         
         const isTooSimple = !hasVerticalComponent || !hasHorizontalComponent || !hasMultipleSegments;
         
-        if (isEmpty || isSimpleLine || isSimpleDot || isTooSimple) {
+        if (isEmpty || isSimpleLine || isSimpleDot || isLowDensity) {
+          resolve({ match: false, confidence: similarity });
+        } else if (isTooSimple && similarity < 0.9) {
           resolve({ match: false, confidence: similarity });
         } else {
-          resolve({ match: similarity > 0.79, confidence: similarity });
+          resolve({ match: similarity > 0.82, confidence: similarity });
         }
       };
       img.onerror = () => resolve({ match: false, confidence: 0 });

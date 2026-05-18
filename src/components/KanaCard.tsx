@@ -41,7 +41,7 @@ export function KanaCard({
             status === 'incorrect' && "border-red-500 bg-red-50 shadow-red-100"
           )}
         >
-          {(status === 'correct' || status === 'incorrect') ? (
+          {status === 'correct' || status === 'incorrect' || !isFlipped ? (
             <>
               <div className="text-3xl font-bold text-slate-800">{char.hiragana}</div>
               <div className="text-xs text-slate-400 font-medium">{char.katakana}</div>
